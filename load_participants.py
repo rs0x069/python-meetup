@@ -14,13 +14,15 @@ def main():
     fake = Faker("ru_RU")
     for _ in range(50):
         User.objects.update_or_create(
-            name=fake.name(),
-            country=fake.country(),
-            city=fake.city(),
+            firstname=fake.name_female(),
+            lastname=fake.lastname_female(),
+            email=fake.email(),
             profession=fake.job(),
             company=fake.company(),
             tel=fake.phone_number(),
-            telegram_id=f'@{fake.user_name()}'
+            telegram_id=f'@{fake.user_name()}',
+            info=fake.paragraph(nb_sentences=5),
+
         )
 
 
