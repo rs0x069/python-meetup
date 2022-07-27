@@ -5,7 +5,7 @@ class Event(models.Model):
     """
     Мероприятия
     """
-    title = models.Model(verbose_name='Заголовок', db_index=True)
+    title = models.CharField(max_length=64, verbose_name='Заголовок', db_index=True)
     start_date = models.DateField(verbose_name='Дата начала', db_index=True)
     description = models.TextField(verbose_name='Описание')
 
@@ -21,8 +21,8 @@ class Section(models.Model):
     """
     Блоки мероприятия
     """
-    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name='sections')
-    title = models.Model(verbose_name='Заголовок', db_index=True)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, verbose_name='Мероприятие', related_name='sections')
+    title = models.CharField(max_length=64, verbose_name='Заголовок', db_index=True)
     start_date = models.DateField(verbose_name='Дата начала', db_index=True)
     start_time = models.TimeField(verbose_name='Время начала', db_index=True)
     end_time = models.TimeField(verbose_name='Время завершения', db_index=True)
@@ -40,10 +40,10 @@ class Speaker(models.Model):
     """
     Спикеры
     """
-    section = models.ManyToManyField(Section, related_name='speakers')
-    firstname = models.CharField(verbose_name='Имя', db_index=True)
-    lastname = models.CharField(verbose_name='Фамилия', db_index=True)
-    telegram_id = models.CharField(verbose_name='Telegram ID', db_index=True)
+    section = models.ManyToManyField(Section, verbose_name='Блок мероприятия', related_name='speakers')
+    firstname = models.CharField(max_length=32, verbose_name='Имя', db_index=True)
+    lastname = models.CharField(max_length=32, verbose_name='Фамилия', db_index=True)
+    telegram_id = models.CharField(max_length=16, verbose_name='Telegram ID', unique=True)
 
     class Meta:
         verbose_name = 'Спикер'
@@ -57,14 +57,14 @@ class Visitor(models.Model):
     """
     Посетители, гости
     """
-    firstname = models.CharField(verbose_name='Имя', db_index=True)
-    lastname = models.CharField(verbose_name='Фамилия', db_index=True)
-    company = models.CharField(verbose_name='Компания', db_index=True)
-    position = models.CharField(verbose_name='Должность', db_index=True)
-    phone_number = models.CharField(verbose_name='Телефон', db_index=True)
-    email = models.EmailField(verbose_name='Email', db_index=True)
-    telegram_id = models.CharField(verbose_name='Telegram ID', db_index=True)
-    about_oneself = models.TextField(verbose_name='О себе')
+    firstname = models.CharField(max_length=32, verbose_name='Имя', db_index=True)
+    lastname = models.CharField(max_length=32, verbose_name='Фамилия', db_index=True)
+    company = models.CharField(max_length=32, verbose_name='Компания', db_index=True)
+    position = models.CharField(max_length=64, verbose_name='Должность', db_index=True)
+    phone_number = models.CharField(max_length=16, blank=True, verbose_name='Телефон', db_index=True)
+    email = models.EmailField(max_length=32, verbose_name='Email', db_index=True)
+    telegram_id = models.CharField(max_length=16, verbose_name='Telegram ID', unique=True)
+    about_oneself = models.TextField(blank=True, verbose_name='О себе')
 
     class Meta:
         verbose_name = 'Посетитель'
@@ -78,10 +78,11 @@ class Question(models.Model):
     """
     Вопросы гостей спикерам
     """
-    section = models.ForeignKey(Section, on_delete=models.CASCADE, related_name='questions')
-    visitor = models.ForeignKey(Visitor, on_delete=models.CASCADE, related_name='questions')
+    section = models.ForeignKey(Section, verbose_name='Блок мероприятия', on_delete=models.CASCADE,
+                                related_name='questions')
+    visitor = models.ForeignKey(Visitor, verbose_name='Посетитель', on_delete=models.CASCADE, related_name='questions')
     question = models.TextField(verbose_name='Вопрос', db_index=True)
-    answer = models.TextField(verbose_name='Ответ', db_index=True)
+    answer = models.TextField(verbose_name='Ответ', blank=True, db_index=True)
 
     class Meta:
         verbose_name = 'Вопрос'
