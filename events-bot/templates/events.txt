@@ -1,0 +1,4 @@
+В настоящий момент планируются сделующие мероприятия:
+{% for event in events %}
+- *{{ event.name }}:* {{ event.date }} \[{{ event.time_from }}-{{ event.time_to }}]
+{% endfor %}

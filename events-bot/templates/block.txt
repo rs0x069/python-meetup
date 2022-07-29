@@ -1,0 +1,8 @@
+*Блок:* {{ name }}
+*Начало в:* {{ time_from }}
+*Конец в:* {{ time_to }}
+*Описание:* {{ description }}
+*Спикеры:*
+{% for speaker in speakers %}
+- *{{ speaker.name }}*
+{% endfor %}
