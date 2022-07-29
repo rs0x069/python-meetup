@@ -5,3 +5,4 @@ dj-database-url==0.5.0
 # for Heroku (don't instal locally)
 gunicorn==20.1.0
 psycopg2==2.9.3
+whitenoise==6.2.0
