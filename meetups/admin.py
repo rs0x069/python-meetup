@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from meetups.models import Event, Section, Speaker, Visitor, Question
+from meetups.models import Event, Section, Visitor, Question
 
 
 @admin.register(Event)
@@ -10,21 +10,18 @@ class EventAdmin(admin.ModelAdmin):
 
 @admin.register(Section)
 class SectionAdmin(admin.ModelAdmin):
-    list_display = ('event', 'title', 'start_date', 'start_time', 'end_time')
+    list_display = ('event', 'title', 'start_time', 'end_time')
 
-
-@admin.register(Speaker)
-class SpeakerAdmin(admin.ModelAdmin):
-    list_display = ('firstname', 'lastname', 'get_sections')
-
-    def get_sections(self, obj):
-        return "\n".join([s.title for s in obj.section.all()])
-    get_sections.short_description = 'Блок мероприятия'
+    def formfield_for_manytomany(self, db_field, request, **kwargs):
+        if db_field.name == 'speaker':
+            kwargs['queryset'] = Visitor.objects.filter(is_speaker=True)
+        return super(SectionAdmin, self).formfield_for_manytomany(db_field, request, **kwargs)
 
 
 @admin.register(Visitor)
 class VisitorAdmin(admin.ModelAdmin):
-    list_display = ('firstname', 'lastname', 'email')
+    list_display = ('firstname', 'is_speaker', 'lastname', 'email')
+    list_filter = ('is_speaker',)
 
 
 @admin.register(Question)
