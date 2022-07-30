@@ -1,3 +1,4 @@
+import re
 import json
 from functools import partial
 
@@ -7,7 +8,8 @@ from telegram.ext import (
     CommandHandler,
     CallbackQueryHandler,
     MessageHandler,
-    Filters
+    Filters,
+    ConversationHandler
 )
 from jinja2 import FileSystemLoader, Environment
 import telegram
@@ -26,8 +28,12 @@ def start(update, context, jinja):
             InlineKeyboardButton(
                 text='Показать мероприятия',
                 callback_data='show_events'
+            ),
+            InlineKeyboardButton(
+                text='Добавить/изменить свою анкету',
+                callback_data='account'
             )
-        ]
+        ],
     ]
 
     context.bot.send_message(
@@ -138,9 +144,9 @@ def show_block(update, context, jinja):
     query = update.callback_query
 
     if query:
-        block_id = query.data.replace('show_event_', '')
+        block_id = query.data.replace('show_block_', '')
     else:
-        block_id = update.message.text.replace('/show_event_', '')
+        block_id = update.message.text.replace('/show_block_', '')
 
     template = jinja.get_template('block.txt')
 
@@ -191,6 +197,74 @@ def show_block(update, context, jinja):
         parse_mode=telegram.ParseMode.MARKDOWN
     )
 
+    return ConversationHandler.END
+
+
+def ask_question(update, context, jinja, state):
+    template = jinja.get_template('ask.txt')
+
+    query = update.callback_query
+    query.answer()
+
+    block_id = re.search(r'^(ask_block_[\d]+)', query.data).group(1).replace(
+        'ask_block_', ''
+    )
+    speaker_id = re.search(r'(speaker_[\d]+)$', query.data).group(1).replace(
+        'speaker_', ''
+    )
+
+    state['block_id'] = block_id
+    state['speaker_id'] = speaker_id
+
+    buttons_md = [
+        [
+            InlineKeyboardButton(
+                text='Назад',
+                callback_data=f'show_block_{block_id}'
+            ),
+            InlineKeyboardButton(
+                text='Главное меню',
+                callback_data='show_title'
+            )
+        ]
+    ]
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=template.render(
+            speaker_name=speaker_id
+        ),
+        reply_markup=InlineKeyboardMarkup(buttons_md)
+    )
+
+    return 'question'
+
+
+def question_handler(update, context, jinja, state):
+    template = jinja.get_template('question_asked.txt')
+    question = update.message.text
+
+    buttons_md = [
+        [
+            InlineKeyboardButton(
+                'Назад к блоку',
+                callback_data='show_block_{}'.format(state['block_id'])
+            ),
+            InlineKeyboardButton(
+                'Главное меню',
+                callback_data='show_title'
+            )
+        ]
+    ]
+
+    context.bot.send_message(
+        chat_id=update.effective_chat.id,
+        text=template.render(),
+        reply_markup=InlineKeyboardMarkup(buttons_md)
+    )
+
+    return ConversationHandler.END
+
 
 if __name__ == '__main__':
     env = Env()
@@ -229,6 +303,36 @@ if __name__ == '__main__':
         partial(show_block, jinja=jinja),
         pattern=r'^(show_block_[\d]+)$')
     )
+
+    ask_state = {
+        'block_id': None,
+        'speaker_id': None,
+    }
+
+    ask_conv_handler = ConversationHandler(
+        entry_points=[CallbackQueryHandler(
+            partial(ask_question, jinja=jinja, state=ask_state),
+            pattern=r'^(ask_block_[\d]+_speaker_[\d]+)$'
+        )],
+        allow_reentry=True,
+        states={
+            'question': [
+                MessageHandler(
+                    Filters.text,
+                    partial(question_handler, jinja=jinja, state=ask_state)
+                )
+            ]
+        },
+        fallbacks=[
+            CallbackQueryHandler(
+                partial(show_block, jinja=jinja),
+                pattern=r'^(show_block_[\d]+)$',
+            )
+        ],
+
+    )
+
+    dp.add_handler(ask_conv_handler)
 
     updater.start_polling()
 
