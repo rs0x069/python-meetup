@@ -599,8 +599,6 @@ def account_about(update, context, jinja, state):
         parse_mode=telegram.ParseMode.MARKDOWN
     )
 
-    print(state)
-
     return ConversationHandler.END
 
 
@@ -615,8 +613,6 @@ def account_skip_about(update, context, jinja, state):
             )
         ]
     ]
-
-    print(state)
 
     context.bot.send_message(
         chat_id=update.effective_chat.id,
@@ -689,8 +685,6 @@ def show_question(update, context, jinja):
 
 def answer_question(update, context):
     answer = update.message.text
-
-    print(answer)
 
     buttons_md = [
         [
