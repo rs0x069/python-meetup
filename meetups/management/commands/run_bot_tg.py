@@ -66,28 +66,28 @@ def start(update, context, jinja):
     )
 
 
-def donate_processing(update: Update, context: CallbackContext) -> None:
+def donate_processing(update, context, provider_token, img_url):
 
     env = Env()
     env.read_env()
     donate_amount = 1
 
     context.bot.send_invoice(
-        chat_id=update.message.chat_id,
+        chat_id=update.effective_chat.id,
         title='Обработка доната',
         description='Спасибо за донат нашему мероприятию!',
         payload="Custom-Payload",
-        provider_token=env.str('PAYMENTS_TOKEN'),
+        provider_token=provider_token,
         currency="USD",
         prices=[LabeledPrice("На чай", donate_amount * 100)],
-        photo_url=env.str('DONATE_IMG_URL'),
+        photo_url=img_url,
         photo_size=512,
         photo_width=512,
         photo_height=512,
     )
 
 
-def precheckout_callback(update: Update, context: CallbackContext) -> None:
+def precheckout_callback(update: Update, context: CallbackContext):
 
     query = update.pre_checkout_query
     if query.invoice_payload != 'Custom-Payload':
@@ -96,7 +96,7 @@ def precheckout_callback(update: Update, context: CallbackContext) -> None:
         query.answer(ok=True)
 
 
-def successful_payment_callback(update: Update, context: CallbackContext) -> None:
+def successful_payment_callback(update: Update, context: CallbackContext):
     update.message.reply_text("Спасибо за поддержку!!")
 
 
@@ -820,7 +820,9 @@ class Command(BaseCommand):
         env = Env()
         env.read_env()
 
-        telegram_token = env("TELEGRAM_TOKEN")
+        telegram_token = env('TELEGRAM_TOKEN')
+        provider_token = env('PAYMENTS_TOKEN')
+        donate_img_url = env('DONATE_IMG_URL')
 
         jinja = Environment(
             loader=FileSystemLoader(TEMPLATES_PATH)
@@ -831,6 +833,17 @@ class Command(BaseCommand):
 
         dp.add_handler(CommandHandler('start', partial(start, jinja=jinja)))
         dp.add_handler(CommandHandler('donate_processing', donate_processing))
+        dp.add_handler(
+            CallbackQueryHandler(
+                partial(
+                    donate_processing,
+                    provider_token=provider_token,
+                    img_url=donate_img_url
+
+                ),
+                pattern='donate_processing'
+            )
+        )
         dp.add_handler(PreCheckoutQueryHandler(precheckout_callback))
         dp.add_handler(CallbackQueryHandler(
             partial(start, jinja=jinja),
@@ -1063,4 +1076,3 @@ class Command(BaseCommand):
         updater.start_polling()
 
         updater.idle()
-
