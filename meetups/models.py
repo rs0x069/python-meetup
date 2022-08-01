@@ -66,6 +66,7 @@ class Question(models.Model):
     section = models.ForeignKey(Section, verbose_name='Блок мероприятия', on_delete=models.CASCADE,
                                 related_name='questions')
     visitor = models.ForeignKey(Visitor, verbose_name='Посетитель', on_delete=models.CASCADE, related_name='questions')
+    speaker = models.ForeignKey(Visitor, on_delete=models.CASCADE, verbose_name='Спикер', related_name='speaker_questions')
     question = models.TextField(verbose_name='Вопрос', db_index=True)
     answer = models.TextField(verbose_name='Ответ', blank=True, db_index=True)
 

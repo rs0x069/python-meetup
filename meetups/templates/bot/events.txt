@@ -1,0 +1,4 @@
+В настоящий момент планируются сделующие мероприятия:
+{% for event in events %}
+- *{{ event.title }}:* {{ event.start_date }}
+{% endfor %}
