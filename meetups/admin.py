@@ -27,7 +27,6 @@ class VisitorAdmin(admin.ModelAdmin):
     list_display = ('firstname', 'is_speaker', 'lastname', 'email')
     list_filter = ('is_speaker',)
     change_list_template = "admin/visitor_change_list.html"
-    change_form_template = 'admin/visitor_change_form.html'
 
     env = Env()
 
