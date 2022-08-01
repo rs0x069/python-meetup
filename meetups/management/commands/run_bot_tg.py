@@ -67,9 +67,6 @@ def start(update, context, jinja):
 
 
 def donate_processing(update, context, provider_token, img_url):
-
-    env = Env()
-    env.read_env()
     donate_amount = 1
 
     context.bot.send_invoice(
