@@ -155,7 +155,7 @@ def show_event(update, context, jinja):
     block_buttons = []
 
     for block in event['sections']:
-        block_id = event['event'].pk
+        block_id = block.pk
         block_buttons.append(
             [
                 InlineKeyboardButton(
