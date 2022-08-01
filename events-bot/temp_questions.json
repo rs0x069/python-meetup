@@ -1,0 +1,38 @@
+[
+  {
+    "id": 1,
+    "block": {
+      "id": 1,
+      "name": "Введение"
+    },
+    "question": "Это вопрос",
+    "answer": null
+  },
+  {
+    "id": 2,
+    "block": {
+      "id": 1,
+      "name": "Введение"
+    },
+    "question": "Это вопрос 1",
+    "answer": null
+  },
+  {
+    "id": 3,
+    "block": {
+      "id": 1,
+      "name": "Введение"
+    },
+    "question": "Это вопрос 2",
+    "answer": "Это ответ на вопрос"
+  },
+  {
+    "id": 4,
+    "block": {
+      "id": 1,
+      "name": "Введение"
+    },
+    "question": "Это вопрос 3",
+    "answer": null
+  }
+]
