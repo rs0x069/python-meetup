@@ -26,9 +26,9 @@ class Visitor(models.Model):
     lastname = models.CharField(max_length=32, verbose_name='Фамилия', db_index=True)
     company = models.CharField(max_length=64, blank=True, verbose_name='Компания', db_index=True)
     position = models.CharField(max_length=64, blank=True, verbose_name='Должность', db_index=True)
-    phone_number = models.CharField(max_length=16, blank=True, verbose_name='Телефон', db_index=True)
+    phone_number = models.CharField(max_length=24, blank=True, verbose_name='Телефон', db_index=True)
     email = models.EmailField(max_length=32, blank=True, verbose_name='Email', db_index=True)
-    telegram_id = models.CharField(max_length=16, verbose_name='Telegram ID', unique=True)
+    telegram_id = models.CharField(max_length=24, verbose_name='Telegram ID', unique=True)
     about_oneself = models.TextField(blank=True, verbose_name='О себе')
     is_speaker = models.BooleanField(default=0, verbose_name='Спикер')
 
