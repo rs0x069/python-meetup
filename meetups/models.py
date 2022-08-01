@@ -37,7 +37,7 @@ class Visitor(models.Model):
         verbose_name_plural = 'Посетители'
 
     def __str__(self):
-        return f'{self.firstname} {self.lastname}'
+        return f'{self.firstname} {self.lastname} {self.telegram_id}'
 
 
 class Section(models.Model):
