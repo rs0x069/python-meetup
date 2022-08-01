@@ -1,9 +1,15 @@
-import re
 import json
+import re
 from functools import partial
 
+import telegram
 from environs import Env
+from jinja2 import FileSystemLoader, Environment
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import LabeledPrice, Update
 from telegram.ext import (
+    CallbackContext,
+    PreCheckoutQueryHandler,
     Updater,
     CommandHandler,
     CallbackQueryHandler,
@@ -11,9 +17,6 @@ from telegram.ext import (
     Filters,
     ConversationHandler
 )
-from jinja2 import FileSystemLoader, Environment
-import telegram
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 
 
 def start(update, context, jinja):
@@ -32,6 +35,10 @@ def start(update, context, jinja):
             InlineKeyboardButton(
                 text='Добавить/изменить свою анкету',
                 callback_data='account'
+            ),
+            InlineKeyboardButton(
+                text='Донат',
+                callback_data='donate_processing'
             )
         ],
     ]
@@ -45,6 +52,7 @@ def start(update, context, jinja):
 
 
 def show_events(update, context, jinja):
+
     with open('./temp_events.json', encoding='UTF-8') as events_json:
         events = json.load(events_json)
 
@@ -200,6 +208,7 @@ def show_block(update, context, jinja):
     return ConversationHandler.END
 
 
+
 def ask_question(update, context, jinja, state):
     template = jinja.get_template('ask.txt')
 
@@ -266,6 +275,38 @@ def question_handler(update, context, jinja, state):
     return ConversationHandler.END
 
 
+def donate_processing(update: Update, context: CallbackContext) -> None:
+
+    donate_amount = 1
+
+    context.bot.send_invoice(
+        chat_id=update.message.chat_id,
+        title='Обработка доната',
+        description='Спасибо за донат нашему мероприятию!',
+        payload="Custom-Payload",
+        provider_token=env.str('PAYMENTS_TOKEN'),
+        currency="USD",
+        prices=[LabeledPrice("На чай", donate_amount * 100)],
+        photo_url=env.str('DONATE_IMG_URL'),
+        photo_size=512,
+        photo_width=512,
+        photo_height=512,
+    )
+
+
+def precheckout_callback(update: Update, context: CallbackContext) -> None:
+
+    query = update.pre_checkout_query
+    if query.invoice_payload != 'Custom-Payload':
+        query.answer(ok=False, error_message="Что-то пошло не так...")
+    else:
+        query.answer(ok=True)
+
+
+def successful_payment_callback(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Спасибо за поддержку!!")
+
+
 if __name__ == '__main__':
     env = Env()
     env.read_env()
@@ -279,6 +320,9 @@ if __name__ == '__main__':
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler('start', partial(start, jinja=jinja)))
+    dp.add_handler(CommandHandler('donate_processing', donate_processing))
+    dp.add_handler(PreCheckoutQueryHandler(precheckout_callback))
+    dp.add_handler(MessageHandler(Filters.successful_payment, successful_payment_callback))
     dp.add_handler(CallbackQueryHandler(
         partial(start, jinja=jinja),
         pattern='show_title')
@@ -303,6 +347,7 @@ if __name__ == '__main__':
         partial(show_block, jinja=jinja),
         pattern=r'^(show_block_[\d]+)$')
     )
+
 
     ask_state = {
         'block_id': None,
@@ -329,7 +374,6 @@ if __name__ == '__main__':
                 pattern=r'^(show_block_[\d]+)$',
             )
         ],
-
     )
 
     dp.add_handler(ask_conv_handler)
