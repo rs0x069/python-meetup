@@ -1,0 +1,16 @@
+{% extends 'admin/change_list.html' %}
+
+{% block object-tools %}
+    <div>
+        <h2>Рассылка в телеграм</h2>
+        <div>
+            <form action="send_to_telegram/" method="POST">
+                {% csrf_token %}
+                <label>Текст</label>
+                <textarea name="telegram_message" cols="50" rows="5" required></textarea>
+                <input type="submit" value="Отправить" />
+            </form>
+        </div>
+    </div>
+    {{ block.super }}
+{% endblock %}
