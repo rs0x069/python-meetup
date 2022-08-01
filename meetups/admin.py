@@ -15,6 +15,7 @@ class EventAdmin(admin.ModelAdmin):
 @admin.register(Section)
 class SectionAdmin(admin.ModelAdmin):
     list_display = ('title', 'event', 'start_time', 'end_time')
+    ordering = ('event__start_date', 'title', 'event', 'start_time')
 
     def formfield_for_manytomany(self, db_field, request, **kwargs):
         if db_field.name == 'speaker':
