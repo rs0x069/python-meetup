@@ -4,5 +4,5 @@
 *Описание:* {{ description }}
 *Спикеры:*
 {% for speaker in speakers %}
-- *{{ speaker.name }}*
+- *{{ speaker.firstname }} {{ speaker.lastname }}*
 {% endfor %}

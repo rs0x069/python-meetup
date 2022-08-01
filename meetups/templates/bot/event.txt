@@ -1,10 +1,8 @@
 *Название мероприятия:* {{ name }}
 *Дата проведения:* {{ date }}
-*Начинается в:* {{ time_from }}
-*Заканчивается в:* {{ time_to }}
 *Описание мероприятия:* {{ description }}
 
 *Список блоков:*
 {% for block in blocks %}
-- {{ block.name }} \[{{ block.time_from }}-{{ block.time_to }}]
+- {{ block.title }} \[{{ block.start_time }}-{{ block.end_time }}]
 {% endfor %}

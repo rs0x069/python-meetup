@@ -1,0 +1,5 @@
+Ниже представлен список вопросов:
+*Вопросы:*
+{% for question in questions %}
+- {{ question.pk }} \[{{ question.section.title }}]. Ответить: /answer\_{{ question.pk }}
+{% endfor %}
