@@ -25,7 +25,7 @@ class SectionAdmin(admin.ModelAdmin):
 
 @admin.register(Visitor)
 class VisitorAdmin(admin.ModelAdmin):
-    list_display = ('firstname', 'is_speaker', 'lastname', 'email')
+    list_display = ('pk', 'firstname', 'is_speaker', 'lastname', 'telegram_id', 'email')
     list_filter = ('is_speaker',)
     change_list_template = "admin/visitor_change_list.html"
 
