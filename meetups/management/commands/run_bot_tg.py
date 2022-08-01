@@ -1,24 +1,26 @@
-import re
-import json
 import os
+import re
 from functools import partial
 
+import telegram
 from django.core.management.base import BaseCommand
 from environs import Env
+from jinja2 import Environment, FileSystemLoader
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import LabeledPrice, Update
 from telegram.ext import (
+    CallbackContext,
     Updater,
     CommandHandler,
     MessageHandler,
     Filters,
     ConversationHandler,
-    CallbackQueryHandler
+    CallbackQueryHandler,
+    PreCheckoutQueryHandler
 )
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup
-import telegram
-from jinja2 import Environment, FileSystemLoader
 
-from python_meetup.settings import BASE_DIR
 from meetups import views, models
+from python_meetup.settings import BASE_DIR
 
 TEMPLATES_PATH = os.path.join(BASE_DIR, 'meetups', 'templates', 'bot', '')
 
@@ -41,6 +43,10 @@ def start(update, context, jinja):
                 text='Добавить/изменить свою анкету',
                 callback_data='show_account'
             ),
+            InlineKeyboardButton(
+                text='Донат',
+                callback_data='donate_processing'
+            ),
         ],
     ]
 
@@ -58,6 +64,40 @@ def start(update, context, jinja):
         parse_mode=telegram.ParseMode.MARKDOWN,
         reply_markup=InlineKeyboardMarkup(buttons_md),
     )
+
+
+def donate_processing(update: Update, context: CallbackContext) -> None:
+
+    env = Env()
+    env.read_env()
+    donate_amount = 1
+
+    context.bot.send_invoice(
+        chat_id=update.message.chat_id,
+        title='Обработка доната',
+        description='Спасибо за донат нашему мероприятию!',
+        payload="Custom-Payload",
+        provider_token=env.str('PAYMENTS_TOKEN'),
+        currency="USD",
+        prices=[LabeledPrice("На чай", donate_amount * 100)],
+        photo_url=env.str('DONATE_IMG_URL'),
+        photo_size=512,
+        photo_width=512,
+        photo_height=512,
+    )
+
+
+def precheckout_callback(update: Update, context: CallbackContext) -> None:
+
+    query = update.pre_checkout_query
+    if query.invoice_payload != 'Custom-Payload':
+        query.answer(ok=False, error_message="Что-то пошло не так...")
+    else:
+        query.answer(ok=True)
+
+
+def successful_payment_callback(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Спасибо за поддержку!!")
 
 
 def show_events(update, context, jinja):
@@ -687,7 +727,7 @@ def show_questions(update, context, jinja):
 def show_question(update, context, jinja, state):
     template = jinja.get_template('question.txt')
     question_id = update.message.text.replace('/answer_', '')
-    
+
     question = views.get_question(
         question_id,
         update.effective_chat.id
@@ -790,6 +830,8 @@ class Command(BaseCommand):
         dp = updater.dispatcher
 
         dp.add_handler(CommandHandler('start', partial(start, jinja=jinja)))
+        dp.add_handler(CommandHandler('donate_processing', donate_processing))
+        dp.add_handler(PreCheckoutQueryHandler(precheckout_callback))
         dp.add_handler(CallbackQueryHandler(
             partial(start, jinja=jinja),
             pattern='show_title')
@@ -1021,3 +1063,4 @@ class Command(BaseCommand):
         updater.start_polling()
 
         updater.idle()
+
